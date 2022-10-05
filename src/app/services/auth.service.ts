@@ -3,30 +3,54 @@ import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user.model';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { FbAuthResponse } from '../models/fbauthresponse.model';
 
 @Injectable()
 export class AuthService {
   constructor(private http: HttpClient) {}
 
-  public get token(): string {
-    return '';
+  // * GET TOKEN
+  public get token() {
+    const expDate = new Date(localStorage.getItem('fb-token-exp')!);
+
+    if (new Date() > expDate) {
+      this.logout();
+      return null;
+    }
+
+    return localStorage.getItem('fb-token');
   }
 
+  // * LOGIN
   login(user: User): Observable<any> {
-    console.log(user);
+    user.returnSecureToken = true;
+
     return this.http
-      .post(
+      .post<FbAuthResponse>(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${environment.apiKey}`,
         user
       )
       .pipe(tap(this.setToken));
   }
 
-  private setToken(response: any) {
-    console.log(response);
+  // * LOGOUT
+  logout() {
+    this.setToken(null);
   }
 
-  logout() {}
+  // * SET TOKEN
+  private setToken(response: FbAuthResponse | null) {
+    if (response) {
+      const expDate = new Date(
+        new Date().getTime() + +response.expiresIn * 1000
+      );
+      console.log(expDate);
+      localStorage.setItem('fb-token', response.idToken);
+      localStorage.setItem('fb-token-exp', expDate.toString());
+    } else {
+      localStorage.clear();
+    }
+  }
 
   isAuthenticated(): boolean {
     return !!this.token;
