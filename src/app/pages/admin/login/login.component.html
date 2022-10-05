@@ -1,1 +1,21 @@
-<p>Login</p>
+<form class="card" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <h2>Login</h2>
+
+  <div class="form-control" [ngClass]="{invalid: form.get('email')?.touched && form.get('email')?.invalid}">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" formControlName="email">
+    <div class="validation" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+      <small>Please fill out email field</small>
+    </div>
+  </div>
+
+  <div class="form-control" [ngClass]="{invalid: form.get('password')?.touched && form.get('password')?.invalid}">
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" formControlName="password">
+    <div class="validation" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+      <small>Please fill out password field. {{form.get('password')?.errors?.['minlength']?.actualLength}} out of {{form.get('password')?.errors?.['minlength']?.requiredLength}}</small>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" [disabled]="form.invalid">Login</button>
+</form>
